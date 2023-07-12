@@ -1,11 +1,25 @@
 import FWCore.ParameterSet.Config as cms
-from Configuration.StandardSequences.Eras import eras
-process = cms.Process('ANASKIM',eras.Run2_2018_pp_on_AA)
 
+from Configuration.Eras.Era_Phase2C11I13M9_cff import Phase2C11I13M9
+
+process = cms.Process('ANASKIM',Phase2C11I13M9)
+
+# import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
-process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+process.load('Configuration.EventContent.EventContent_cff')
+process.load('SimGeneral.MixingModule.mixNoPU_cfi')
+process.load('Configuration.Geometry.GeometryExtended2026D77Reco_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
+process.load('Configuration.StandardSequences.RawToDigi_cff')
+process.load('Configuration.StandardSequences.L1Reco_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
+process.load('Configuration.StandardSequences.RecoSim_cff')
+process.load('PhysicsTools.PatAlgos.slimming.metFilterPaths_cff')
+process.load('Configuration.StandardSequences.PATMC_cff')
+process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 # Limit the output messages
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -21,10 +35,11 @@ process.source = cms.Source("PoolSource",
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Set the global tag
-process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
-process.GlobalTag.globaltag = cms.string('103X_upgrade2018_realistic_HI_v12')
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic_T21', '')
 
 # Add PbPb centrality
+# centrality unavailable and do not use them
 process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
 process.centralityBin.Centrality = cms.InputTag("hiCentrality")
 process.centralityBin.centralityVariable = cms.string("HFtowers")
@@ -39,6 +54,7 @@ process.GlobalTag.toGet.extend([
 process.cent_seq = cms.Sequence(process.centralityBin)
 
 # Add PbPb event plane
+# event plane unavailable and do not use them
 process.load("RecoHI.HiEvtPlaneAlgos.HiEvtPlane_cfi")
 process.load("RecoHI.HiEvtPlaneAlgos.hiEvtPlaneFlat_cfi")
 process.hiEvtPlane.trackTag = cms.InputTag("generalTracks")
