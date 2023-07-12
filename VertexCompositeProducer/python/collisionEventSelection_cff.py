@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 from VertexCompositeAnalysis.VertexCompositeProducer.hfCoincFilter_cff import *
 
 # Selection of at least a two-track fitted vertex
-primaryVertexFilter = cms.EDFilter("VertexSelector",
+primaryVertexFilterAA = cms.EDFilter("VertexSelector",
     src = cms.InputTag("offlinePrimaryVertices"),
     cut = cms.string("!isFake && abs(z) <= 25 && position.Rho <= 2 && tracksSize >= 2"),
     filter = cms.bool(True), # otherwise it won't filter the events
@@ -22,10 +22,10 @@ from VertexCompositeAnalysis.VertexCompositeProducer.clusterCompatibilityFilter_
 
 collisionEventSelectionAOD = cms.Sequence(
     hfCoincFilter3Th3 *
-    primaryVertexFilter *
+    primaryVertexFilterAA *
     clusterCompatibilityFilter)
 
 collisionEventSelectionAODv2 = cms.Sequence(
     hfCoincFilter2Th4 *
-    primaryVertexFilter *
+    primaryVertexFilterAA *
     clusterCompatibilityFilter)

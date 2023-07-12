@@ -48,6 +48,9 @@ dimuana = cms.EDAnalyzer('PATCompositeTreeProducer',
       'hltL1sSingleMuOpenNotMBHF2AND',
       'hltL3fL1sL1SingleMu*OpenL1f0L2f0L3Filtered3NHitQ10',
   ),
+  # for prescale provider
+  # stage 2
+  stageL1Trigger = cms.uint32(2),
 
   #Filter info
   FilterResultCollection = cms.untracked.InputTag("TriggerResults::ANASKIM"),
