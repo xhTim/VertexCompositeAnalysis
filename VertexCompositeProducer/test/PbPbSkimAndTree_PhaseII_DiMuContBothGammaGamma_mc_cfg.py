@@ -58,14 +58,14 @@ process.cent_seq = cms.Sequence(process.centralityBin)
 process.load("RecoHI.HiEvtPlaneAlgos.HiEvtPlane_cfi")
 process.load("RecoHI.HiEvtPlaneAlgos.hiEvtPlaneFlat_cfi")
 process.hiEvtPlane.trackTag = cms.InputTag("generalTracks")
-process.hiEvtPlane.vertexTag = cms.InputTag("offlinePrimaryVerticesRecovery")
+process.hiEvtPlane.vertexTag = cms.InputTag("offlinePrimaryVertices")
 process.hiEvtPlane.loadDB = cms.bool(True)
 process.hiEvtPlane.useNtrk = cms.untracked.bool(False)
 process.hiEvtPlane.caloCentRef = cms.double(-1)
 process.hiEvtPlane.caloCentRefWidth = cms.double(-1)
 process.hiEvtPlaneFlat.caloCentRef = cms.double(-1)
 process.hiEvtPlaneFlat.caloCentRefWidth = cms.double(-1)
-process.hiEvtPlaneFlat.vertexTag = cms.InputTag("offlinePrimaryVerticesRecovery")
+process.hiEvtPlaneFlat.vertexTag = cms.InputTag("offlinePrimaryVertices")
 process.hiEvtPlaneFlat.useNtrk = cms.untracked.bool(False)
 process.CondDB.connect = "sqlite_file:HeavyIonRPRcd_PbPb2018_offline.db"
 process.PoolDBESSource = cms.ESSource("PoolDBESSource",
@@ -88,13 +88,12 @@ doPATMuons(process, True)
 process.load('VertexCompositeAnalysis.VertexCompositeProducer.collisionEventSelection_cff')
 process.load('VertexCompositeAnalysis.VertexCompositeProducer.clusterCompatibilityFilter_cfi')
 process.load('VertexCompositeAnalysis.VertexCompositeProducer.hfCoincFilter_cff')
-process.load("VertexCompositeAnalysis.VertexCompositeProducer.OfflinePrimaryVerticesRecovery_cfi")
 process.colEvtSel = cms.Sequence(process.hfCoincFilter2Th4 * process.primaryVertexFilterAA * process.clusterCompatibilityFilter)
 
 # Define the analysis steps
-process.pcentandep_step = cms.Path(process.offlinePrimaryVerticesRecovery * process.cent_seq * process.evtplane_seq)
-process.dimurereco_step = cms.Path(process.offlinePrimaryVerticesRecovery * process.patMuonSequence * process.generalDiMuCandidates)
-process.dimurerecowrongsign_step = cms.Path(process.offlinePrimaryVerticesRecovery * process.patMuonSequence * process.generalDiMuCandidatesWrongSign)
+process.pcentandep_step = cms.Path(process.cent_seq * process.evtplane_seq)
+process.dimurereco_step = cms.Path(process.patMuonSequence * process.generalDiMuCandidates)
+process.dimurerecowrongsign_step = cms.Path(process.patMuonSequence * process.generalDiMuCandidatesWrongSign)
 
 # Add the VertexComposite tree
 process.load("VertexCompositeAnalysis.VertexCompositeAnalyzer.dimuanalyzer_tree_cff")
@@ -116,15 +115,10 @@ process.schedule = cms.Schedule(
 )
 
 # Add the event selection filters
-process.Flag_colEvtSel = cms.Path(process.offlinePrimaryVerticesRecovery * process.colEvtSel)
-process.Flag_hfCoincFilter2Th4 = cms.Path(process.offlinePrimaryVerticesRecovery * process.hfCoincFilter2Th4)
-process.Flag_primaryVertexFilter = cms.Path(process.offlinePrimaryVerticesRecovery * process.primaryVertexFilterAA)
-process.Flag_clusterCompatibilityFilter = cms.Path(process.offlinePrimaryVerticesRecovery * process.clusterCompatibilityFilter)
+process.Flag_colEvtSel = cms.Path(process.colEvtSel)
+process.Flag_hfCoincFilter2Th4 = cms.Path(process.hfCoincFilter2Th4)
+process.Flag_primaryVertexFilter = cms.Path(process.primaryVertexFilterAA)
+process.Flag_clusterCompatibilityFilter = cms.Path(process.clusterCompatibilityFilter)
 eventFilterPaths = [ process.Flag_colEvtSel , process.Flag_hfCoincFilter2Th4 , process.Flag_primaryVertexFilter , process.Flag_clusterCompatibilityFilter ]
 for P in eventFilterPaths:
     process.schedule.insert(0, P)
-
-# Add recovery for offline primary vertex
-from HLTrigger.Configuration.CustomConfigs import MassReplaceInputTag
-process = MassReplaceInputTag(process,"offlinePrimaryVertices","offlinePrimaryVerticesRecovery")
-process.offlinePrimaryVerticesRecovery.oldVertexLabel = "offlinePrimaryVertices"
