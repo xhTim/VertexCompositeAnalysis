@@ -28,7 +28,7 @@ process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 
 # Define the input source
 process.source = cms.Source("PoolSource",
-   fileNames = cms.untracked.vstring('root://eoscms.cern.ch///store/group/phys_heavyions/huangxi/Reco/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_Reco_v2/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_GenFilter/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_Reco_v2/230711_222047/0000/step3_100.root'),
+   fileNames = cms.untracked.vstring('root://eoscms.cern.ch///store/group/phys_heavyions/huangxi/Reco/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_Reco_v2/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_GenFilter/STARlight_CohJpsi2MuMu_0n0n_PbPb5TeV_Reco_v2/230711_222047/0000/step3_inMINIAODSIM_100.root'),
    inputCommands=cms.untracked.vstring('keep *', 'drop *_hiEvtPlane_*_*')
 )
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
@@ -48,9 +48,15 @@ process.load('VertexCompositeAnalysis.VertexCompositeProducer.collisionEventSele
 process.load('VertexCompositeAnalysis.VertexCompositeProducer.hfCoincFilter_cff')
 process.colEvtSel = cms.Sequence(process.hfCoincFilter2Th4 * process.primaryVertexFilterAA )
 
+# place holder for changeToMiniAOD
+# do not perform selections
+process.eventFilter_HM = cms.Sequence(
+)
+process.eventFilter_HM_step = cms.Path( process.eventFilter_HM )
+
 # Define the analysis steps
-process.dimurereco_step = cms.Path(process.patMuonSequence * process.generalDiMuCandidates)
-process.dimurerecowrongsign_step = cms.Path(process.patMuonSequence * process.generalDiMuCandidatesWrongSign)
+process.dimurereco_step = cms.Path(process.eventFilter_HM * process.patMuonSequence * process.generalDiMuCandidates)
+process.dimurerecowrongsign_step = cms.Path(process.eventFilter_HM * process.patMuonSequence * process.generalDiMuCandidatesWrongSign)
 
 # Add the VertexComposite tree
 process.load("VertexCompositeAnalysis.VertexCompositeAnalyzer.dimuanalyzer_tree_cff")
@@ -65,15 +71,23 @@ process.dimucontana_wrongsign_mc.doMuonNtuple = cms.untracked.bool(True)
 
 # Define the process schedule
 process.schedule = cms.Schedule(
+    process.eventFilter_HM_step,
     process.dimurereco_step,
     process.dimurerecowrongsign_step,
     process.p
 )
 
 # Add the event selection filters
-process.Flag_colEvtSel = cms.Path(process.colEvtSel)
-process.Flag_hfCoincFilter2Th4 = cms.Path(process.hfCoincFilter2Th4)
-process.Flag_primaryVertexFilter = cms.Path(process.primaryVertexFilterAA)
+# CaloTower never available in MINIAOD
+# the flags are useless
+process.Flag_colEvtSel = cms.Path(process.eventFilter_HM * process.colEvtSel)
+process.Flag_hfCoincFilter2Th4 = cms.Path(process.eventFilter_HM * process.hfCoincFilter2Th4)
+process.Flag_primaryVertexFilter = cms.Path(process.eventFilter_HM * process.primaryVertexFilterAA)
 eventFilterPaths = [ process.Flag_colEvtSel , process.Flag_hfCoincFilter2Th4 , process.Flag_primaryVertexFilter ]
-for P in eventFilterPaths:
-    process.schedule.insert(0, P)
+
+# MINIAOD
+from VertexCompositeAnalysis.VertexCompositeProducer.PATAlgos_cff import changeToMiniAOD
+changeToMiniAOD(process)
+from HLTrigger.Configuration.CustomConfigs import MassReplaceInputTag
+process = MassReplaceInputTag(process,"genParticles","prunedGenParticles")
+process = MassReplaceInputTag(process,"offlinePrimaryVerticesRecovery","unpackedTracksAndVertices")
